@@ -15,6 +15,14 @@ const budgetController = (() => {
     this.value = value;
   };
 
+  const calculateTotal = type => {
+    let sum = 0;
+    data.allItems[type].forEach(element => {
+      sum = sum + element.value;
+    });
+    data.totals[type] = sum;
+  };
+
   // data structure
 
   let data = {
@@ -25,7 +33,9 @@ const budgetController = (() => {
     totals: {
       exp: 0,
       inc: 0
-    }
+    },
+    budget: 0,
+    percentage: -1
   };
 
   return {
@@ -50,11 +60,38 @@ const budgetController = (() => {
       data.allItems[type].push(newItem);
       console.log(data);
       return newItem;
+    },
+
+    calculateBudget: type => {
+      // let budgetTotal;
+
+      // calc total income and expenses
+      calculateTotal(type);
+      // calc the budget: income- expenses
+
+      data.budget = data.totals.inc - data.totals.exp;
+
+      // calc the pct of income spent
+      if (data.totals.inc > 0 && data.budget > 0) {
+        data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+      } else {
+        data.percentage = -1;
+      }
+    },
+
+    getBudget: () => {
+      return {
+        budget: data.budget,
+        totalInc: data.totals.inc,
+        totalExp: data.totals.exp,
+        percentage: data.percentage
+      };
     }
   };
 })();
 
-//UI CONTROLLER /////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//UI CONTROLLER //////////////////////////////////////////////////////////////////////////
 
 const UIController = (() => {
   //DS = DOM String html identifiers
@@ -64,7 +101,11 @@ const UIController = (() => {
     inpVal: '.add__value',
     inpBtn: '.add__btn',
     incCont: '.income__list',
-    expCont: '.expenses__list'
+    expCont: '.expenses__list',
+    budVal: '.budget__value',
+    budInc: '.budget__expenses--value',
+    budExp: '.budget__income--value',
+    budPct: '.budget__expenses--percentage'
   };
 
   return {
@@ -72,7 +113,7 @@ const UIController = (() => {
       return {
         type: $(DS.inpType).val(),
         description: $(DS.inpDesc).val(),
-        value: $(DS.inpVal).val()
+        value: parseFloat($(DS.inpVal).val())
         // $(DS.inpType).val() === 'inc' ? $(DS.inpVal).val() : $(DS.inpVal).val() * -1
       };
     },
@@ -103,13 +144,47 @@ const UIController = (() => {
       $(element).append(newHtml);
     },
 
+    clearFields: () => {
+      let fields, fieldsArr;
+
+      fields = document.querySelectorAll(DS.inpDesc + ',' + DS.inpVal);
+
+      // convert this list to an array
+
+      fieldsArr = Array.prototype.slice.call(fields); //sets the this of the Array prototype to the fields list
+
+      fieldsArr.forEach(function(current) {
+        current.value = '';
+      });
+
+      fieldsArr[0].focus();
+    },
+
+    updateBudgetUI: budgetTotal => {
+      $('.budget__value').val(budgetTotal);
+    },
+    displayBudget: obj => {
+      $(DS.budVal).text(obj.budget > 0 ? '+ ' + obj.budget : '- ' + obj.budget);
+      $(DS.budExp).text('- ' + obj.totalExp);
+      $(DS.budInc).text('+ ' + obj.totalInc);
+      $(DS.budPct).text(obj.percentage > 0 ? String(obj.percentage) + '%' : '---');
+    },
+
+    resetBudget: () => {
+      $(DS.budVal).text('0');
+      $(DS.budExp).text('0');
+      $(DS.budInc).text('0');
+      $(DS.budPct).text('---');
+    },
+
     getDOMstrings: () => {
       return DS;
     }
   };
 })();
 
-// APP CONTROLLER /////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+// APP CONTROLLER ///////////////////////////////////////////////////////////////////////
 
 const controller = ((budgetCtrl, UICtrl) => {
   const setupEventListeners = () => {
@@ -124,25 +199,44 @@ const controller = ((budgetCtrl, UICtrl) => {
     });
   };
 
+  const updateBudget = type => {
+    // 1. calc the budget
+    budgetCtrl.calculateBudget(type);
+
+    // 2. Return the budget
+    let budget = budgetCtrl.getBudget();
+
+    // 3. Display the budget on the UI
+    UICtrl.displayBudget(budget);
+  };
+
   const ctrlAddItem = () => {
     let input, newItem;
 
     // 1. Get field input data
     input = UICtrl.getInput();
 
-    // 2. add item to budgetcontroller
-    newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+    //test to make sure all input fields have been filled before continuing
+    if (input.description !== '' && !isNaN(input.value) && input.value > 0) {
+      // 2. add item to budgetcontroller
+      newItem = budgetCtrl.addItem(input.type, input.description, input.value);
 
-    // 3. add the item to the UI
+      // 3. add the item to the UI
+      UICtrl.addListItem(newItem, input.type);
 
-    UICtrl.addListItem(newItem, input.type);
-    // 4. Calc the budget
-    // 5. display budget on UI
+      // 4. Clear the fields
+      UICtrl.clearFields();
+
+      // 5. Calc and update the budget
+
+      updateBudget(input.type);
+    }
   };
 
   return {
     init: () => {
       console.log('Application has started.');
+      UICtrl.resetBudget();
       setupEventListeners();
     }
   };
