@@ -1,0 +1,48 @@
+document selectors and jquery equivalents
+
+
+document.querySelector('.add__btn').addEventListener('click', function() {
+    console.log('button clicked');
+  });
+
+
+  $('.add__btn').click(ctrlAddItem);
+
+
+
+  document.addEventListener('keypress', function(e) {
+    if (e.keyCode === 13 || e.which === 13) {
+      ctrlAddItem();
+    }
+  });
+
+  $(document).on('keypress', function(e) {
+    if (e.keyCode === 13 || e.which === 13) {
+      ctrlAddItem();
+    }
+  });
+
+
+
+
+
+  getInputOld: function() {
+      const type = document.querySelector('add__type').value;
+      const description = document.querySelector('add__description').value;
+      const value = document.querySelector('add__value').value;
+    }
+
+    getInput: function() {
+      return {
+        type: $(DS.inpType).val(),
+        description: $(DS.inpDesc).val(),
+        value: $(DS.inpVal).val()
+        // $(DS.inpType).val() === 'inc' ? $(DS.inpVal).val() : $(DS.inpVal).val() * -1
+      };
+    }
+
+
+     // Place html in UI
+      document.querySelector(element).insertAdjacentHTML('beforeend', html);
+
+      $(element).append(newHtml);

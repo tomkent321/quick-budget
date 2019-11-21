@@ -103,9 +103,10 @@ const UIController = (() => {
     incCont: '.income__list',
     expCont: '.expenses__list',
     budVal: '.budget__value',
-    budInc: '.budget__expenses--value',
-    budExp: '.budget__income--value',
-    budPct: '.budget__expenses--percentage'
+    budExp: '.budget__expenses--value',
+    budInc: '.budget__income--value',
+    budPct: '.budget__expenses--percentage',
+    container: '.container'
   };
 
   return {
@@ -126,11 +127,11 @@ const UIController = (() => {
       if (type === 'inc') {
         element = DS.incCont;
         html =
-          '<div class="item clearfix" id="income-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="inc-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"><div class="item__value">%value%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       } else {
         element = DS.expCont;
         html =
-          '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">%pct%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">%pct%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       }
 
       //Replace the placeholder text with actual data
@@ -160,9 +161,6 @@ const UIController = (() => {
       fieldsArr[0].focus();
     },
 
-    updateBudgetUI: budgetTotal => {
-      $('.budget__value').val(budgetTotal);
-    },
     displayBudget: obj => {
       $(DS.budVal).text(obj.budget > 0 ? '+ ' + obj.budget : '- ' + obj.budget);
       $(DS.budExp).text('- ' + obj.totalExp);
@@ -197,6 +195,8 @@ const controller = ((budgetCtrl, UICtrl) => {
         ctrlAddItem();
       }
     });
+
+    $(DS.container).click(ctrlDeleteItem);
   };
 
   const updateBudget = type => {
@@ -230,6 +230,24 @@ const controller = ((budgetCtrl, UICtrl) => {
       // 5. Calc and update the budget
 
       updateBudget(input.type);
+    }
+  };
+
+  const ctrlDeleteItem = e => {
+    let itemId, splitID, type, ID;
+
+    itemId = e.target.parentNode.parentNode.parentNode.parentNode.id;
+
+    if (itemId) {
+      splitID = itemID.split('-');
+      type = splitID[0];
+      ID = splitID[1];
+
+      // 1. deleted item from the data structure
+
+      // 2. delete item from UI
+
+      // 3. update and show new budget
     }
   };
 
