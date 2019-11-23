@@ -7,6 +7,19 @@ const budgetController = (() => {
     this.id = id;
     this.description = description;
     this.value = value;
+    this.percentage = -1;
+  };
+
+  Expense.prototype.calcPercentage = function(totalIncome) {
+    if (totalIncome > 0) {
+      this.percentage = Math.round((this.value / totalIncome) * 100);
+    } else {
+      this.percentage = -1;
+    }
+  };
+
+  Expense.prototype.getPercentage = function() {
+    return this.percentage;
   };
 
   const Income = function(id, description, value) {
@@ -58,8 +71,21 @@ const budgetController = (() => {
 
       // Push the new item to the data object
       data.allItems[type].push(newItem);
-      console.log(data);
       return newItem;
+    },
+
+    deleteItem: (type, id) => {
+      let ids, indx;
+
+      ids = data.allItems[type].map(current => {
+        return current.id;
+      });
+
+      indx = ids.indexOf(id);
+
+      if (indx !== -1) {
+        data.allItems[type].splice(indx, 1);
+      }
     },
 
     calculateBudget: type => {
@@ -77,6 +103,19 @@ const budgetController = (() => {
       } else {
         data.percentage = -1;
       }
+    },
+
+    calculatePercentages: () => {
+      data.allItems.exp.forEach(current => {
+        current.calcPercentage(data.totals.inc);
+      });
+    },
+
+    getPercentages: () => {
+      let allPerc = data.allItems.exp.map(cur => {
+        return cur.getPercentage();
+      });
+      return allPerc;
     },
 
     getBudget: () => {
@@ -106,7 +145,8 @@ const UIController = (() => {
     budExp: '.budget__expenses--value',
     budInc: '.budget__income--value',
     budPct: '.budget__expenses--percentage',
-    container: '.container'
+    container: '.container',
+    itemPct: '.item__percentage'
   };
 
   return {
@@ -145,6 +185,10 @@ const UIController = (() => {
       $(element).append(newHtml);
     },
 
+    deleteListItem: itemID => {
+      $(`#${itemID}`).remove();
+    },
+
     clearFields: () => {
       let fields, fieldsArr;
 
@@ -162,8 +206,8 @@ const UIController = (() => {
     },
 
     displayBudget: obj => {
-      $(DS.budVal).text(obj.budget > 0 ? '+ ' + obj.budget : '- ' + obj.budget);
-      $(DS.budExp).text('- ' + obj.totalExp);
+      $(DS.budVal).text(obj.budget > 0 ? '+ ' + obj.budget : obj.budget);
+      $(DS.budExp).text(obj.totalExp);
       $(DS.budInc).text('+ ' + obj.totalInc);
       $(DS.budPct).text(obj.percentage > 0 ? String(obj.percentage) + '%' : '---');
     },
@@ -173,6 +217,24 @@ const UIController = (() => {
       $(DS.budExp).text('0');
       $(DS.budInc).text('0');
       $(DS.budPct).text('---');
+    },
+
+    displayPercentages: percentages => {
+      let fields = document.querySelectorAll(DS.itemPct);
+
+      nodeListforEach = (list, callback) => {
+        for (let i = 0; i < list.length; i++) {
+          callback(list[i], i);
+        }
+      };
+
+      nodeListforEach(fields, (current, index) => {
+        if (percentages[index] > 0) {
+          current.textContent = percentages[index] + '%';
+        } else {
+          current.textContent = '---';
+        }
+      });
     },
 
     getDOMstrings: () => {
@@ -210,6 +272,20 @@ const controller = ((budgetCtrl, UICtrl) => {
     UICtrl.displayBudget(budget);
   };
 
+  const updatePercentages = () => {
+    // 1. calc pct
+
+    budgetCtrl.calculatePercentages();
+    // 2. read pct from budget controller
+
+    let percentages = budgetCtrl.getPercentages();
+
+    // 3. Update the UI with new pct
+
+    console.log('percentages: ', percentages);
+    UICtrl.displayPercentages(percentages);
+  };
+
   const ctrlAddItem = () => {
     let input, newItem;
 
@@ -230,24 +306,38 @@ const controller = ((budgetCtrl, UICtrl) => {
       // 5. Calc and update the budget
 
       updateBudget(input.type);
+
+      // 6. Calc and update the percentages
+
+      updatePercentages();
     }
   };
 
   const ctrlDeleteItem = e => {
     let itemId, splitID, type, ID;
 
-    itemId = e.target.parentNode.parentNode.parentNode.parentNode.id;
+    itemID = e.target.parentNode.parentNode.parentNode.parentNode.id;
 
-    if (itemId) {
+    if (itemID) {
       splitID = itemID.split('-');
       type = splitID[0];
-      ID = splitID[1];
+      ID = parseInt(splitID[1]);
 
       // 1. deleted item from the data structure
 
+      budgetCtrl.deleteItem(type, ID);
+
       // 2. delete item from UI
 
+      UICtrl.deleteListItem(itemID);
+
       // 3. update and show new budget
+
+      updateBudget(type);
+
+      // 4. update percentages
+
+      updatePercentages();
     }
   };
 

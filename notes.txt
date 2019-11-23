@@ -46,3 +46,11 @@ document.querySelector('.add__btn').addEventListener('click', function() {
       document.querySelector(element).insertAdjacentHTML('beforeend', html);
 
       $(element).append(newHtml);
+
+
+       $(`#${itemID}`).remove();
+
+      // or
+      
+      let el = document.getElementById(itemID);
+      el.parentNode.removeChild(el);
