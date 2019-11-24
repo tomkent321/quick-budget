@@ -21,6 +21,11 @@ body {
   position: relative;
   height: 100vh;
   font-weight: 400;
+  background-image: linear-gradient(
+    to bottom right,
+    rgba(202, 208, 211, 0.103),
+    rgba(63, 68, 83, 0.144)
+  );
 }
 
 .right {

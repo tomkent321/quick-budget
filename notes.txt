@@ -51,6 +51,31 @@ document.querySelector('.add__btn').addEventListener('click', function() {
        $(`#${itemID}`).remove();
 
       // or
-      
+
       let el = document.getElementById(itemID);
       el.parentNode.removeChild(el);
+
+
+
+      //change event 
+
+        var fields = document.querySelectorAll(
+
+            DS.chgSign + ',' +
+            DS.inpDesc + ',' +
+            DS.inpVal);
+
+            nodeListForEach(fields, function(cur) {
+              cur.classList.toggle('red-focus')
+            });
+
+            document.querySelector(DS.inpBtn).classList.toggle('red);
+        )
+
+  // or
+
+
+      changedType: () => {
+      $(DS.chgSign + ',' + DS.inpDesc + ',' + DS.inpVal).toggleClass('red-focus');
+      $(DS.inpBtn).toggleClass('red');
+    },

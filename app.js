@@ -147,7 +147,8 @@ const UIController = (() => {
     budPct: '.budget__expenses--percentage',
     container: '.container',
     itemPct: '.item__percentage',
-    nowDate: '.budget__title--month'
+    nowDate: '.budget__title--month',
+    chgSign: '.add__type'
   };
 
   const formatNumber = (num, type) => {
@@ -278,6 +279,11 @@ const UIController = (() => {
       $(DS.nowDate).text(month + ', ' + year);
     },
 
+    changedType: () => {
+      $(DS.chgSign + ',' + DS.inpDesc + ',' + DS.inpVal).toggleClass('red-focus');
+      $(DS.inpBtn).toggleClass('red');
+    },
+
     getDOMstrings: () => {
       return DS;
     }
@@ -300,6 +306,8 @@ const controller = ((budgetCtrl, UICtrl) => {
     });
 
     $(DS.container).click(ctrlDeleteItem);
+
+    $(DS.chgSign).change(UICtrl.changedType);
   };
 
   const updateBudget = type => {
