@@ -146,7 +146,21 @@ const UIController = (() => {
     budInc: '.budget__income--value',
     budPct: '.budget__expenses--percentage',
     container: '.container',
-    itemPct: '.item__percentage'
+    itemPct: '.item__percentage',
+    nowDate: '.budget__title--month'
+  };
+
+  const formatNumber = (num, type) => {
+    num = num.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    if (type === 'inc') {
+      return `+ ${num}`;
+    } else {
+      return `- ${num}`;
+    }
   };
 
   return {
@@ -155,7 +169,6 @@ const UIController = (() => {
         type: $(DS.inpType).val(),
         description: $(DS.inpDesc).val(),
         value: parseFloat($(DS.inpVal).val())
-        // $(DS.inpType).val() === 'inc' ? $(DS.inpVal).val() : $(DS.inpVal).val() * -1
       };
     },
 
@@ -178,7 +191,7 @@ const UIController = (() => {
 
       newHtml = html.replace('%id%', obj.id);
       newHtml = newHtml.replace('%description%', obj.description);
-      newHtml = newHtml.replace('%value%', obj.value);
+      newHtml = newHtml.replace('%value%', formatNumber(obj.value, type));
 
       // Place html in UI
 
@@ -206,9 +219,11 @@ const UIController = (() => {
     },
 
     displayBudget: obj => {
-      $(DS.budVal).text(obj.budget > 0 ? '+ ' + obj.budget : obj.budget);
-      $(DS.budExp).text(obj.totalExp);
-      $(DS.budInc).text('+ ' + obj.totalInc);
+      $(DS.budVal).text(
+        obj.budget > 0 ? formatNumber(obj.budget, 'inc') : formatNumber(obj.budget, 'exp')
+      );
+      $(DS.budExp).text(formatNumber(obj.totalExp, 'exp'));
+      $(DS.budInc).text(formatNumber(obj.totalInc, 'inc'));
       $(DS.budPct).text(obj.percentage > 0 ? String(obj.percentage) + '%' : '---');
     },
 
@@ -222,7 +237,7 @@ const UIController = (() => {
     displayPercentages: percentages => {
       let fields = document.querySelectorAll(DS.itemPct);
 
-      nodeListforEach = (list, callback) => {
+      let nodeListforEach = (list, callback) => {
         for (let i = 0; i < list.length; i++) {
           callback(list[i], i);
         }
@@ -235,6 +250,32 @@ const UIController = (() => {
           current.textContent = '---';
         }
       });
+    },
+
+    displayDate: () => {
+      let now, year, m;
+
+      now = new Date();
+
+      year = now.getFullYear();
+      const mon = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+      ];
+
+      month = mon[now.getMonth()];
+
+      $(DS.nowDate).text(month + ', ' + year);
     },
 
     getDOMstrings: () => {
@@ -282,7 +323,6 @@ const controller = ((budgetCtrl, UICtrl) => {
 
     // 3. Update the UI with new pct
 
-    console.log('percentages: ', percentages);
     UICtrl.displayPercentages(percentages);
   };
 
@@ -345,6 +385,7 @@ const controller = ((budgetCtrl, UICtrl) => {
     init: () => {
       console.log('Application has started.');
       UICtrl.resetBudget();
+      UICtrl.displayDate();
       setupEventListeners();
     }
   };
